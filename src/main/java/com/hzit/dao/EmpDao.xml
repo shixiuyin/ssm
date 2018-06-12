@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 1.接口路径一致 2.方法名称和id一致 3.参数类型和parameterType一致，4.返回值和resultType 一致 -->
+<mapper namespace="com.hzit.dao.EmpDao">
+
+
+	<sql id="base_col_emp">
+		empno,ename,job,mgr,hiredate,sal,deptno
+	</sql>
+
+	<select id="findEmpList" resultType="Emp">
+
+		select e.*,d.dname,d.loc
+		from emp e inner join dept d on e.deptno=d.deptno order by e.empno asc
+
+	</select>
+
+	<select id="findEmpById" resultType="Emp" parameterType="int">
+		select
+		e.*,d.dname,d.loc from emp e inner join dept d on e.deptno=d.deptno
+		where e.empno=#{empno}
+	</select>
+
+
+	<insert id="saveEmp" parameterType="Emp">
+		insert into
+		emp(ename,job,mgr,hiredate,sal,deptno)
+		values(#{ename},#{job},#{mgr},#{hiredate},#{sal},#{deptno})
+	</insert>
+
+	<update id="updateEmp" parameterType="Emp">
+		update emp
+		<set>
+			<if test="ename!=null and ename!=''">
+				ename = #{ename},
+			</if>
+			<if test="job!=null and job!=''">
+				job = #{job},
+			</if>
+			<if test="mgr!=null and mgr!=''">
+				mgr = #{mgr},
+			</if>
+			<if test="hiredate!=null and hiredate!=''">
+				hiredate = #{hiredate},
+			</if>
+			<if test="sal!=null and sal!=''">
+				sal = #{sal},
+			</if>
+			<if test="deptno!=null and deptno!=''">
+				deptno = #{deptno},
+			</if>
+		</set>
+		where empno=#{empno}
+	</update>
+
+	<delete id="deleteEmpById" parameterType="java.lang.Integer">
+		delete from emp where
+		empno=#{empno}
+	</delete>
+
+	<!-- 批量删除 -->
+	<delete id="deleteEmpByIds" parameterType="Object[]">
+		delete from emp where empno in
+		<foreach collection="array" open="(" close=")" separator=","
+			item="empno">
+			${empno}
+		</foreach>
+
+	</delete>
+
+	<!-- 根据条件查询 -->
+	<select id="searchEmps" parameterType="java.util.Map" resultType="Emp">
+		select
+		e.*,d.dname,d.loc
+		from emp e inner join dept d on
+		e.deptno=d.deptno
+
+		<!--根据部门 根据员工名称- -->
+		<where>
+			<if test="deptno!=null and deptno!=-1">
+				e.deptno=#{deptno}
+			</if>
+
+			<if test="ename!=null and ename!=''">
+				<!--模糊查询不能使用#{},使用${}表示拼接字符串 -->
+				and e.ename like '%${ename}%'
+			</if>
+
+		</where>
+
+
+	</select>
+
+
+</mapper>

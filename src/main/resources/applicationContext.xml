@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- 扫描基础包 -->
+	<context:component-scan base-package="com.hzit.service,com.hzit.dao" />
+
+	<!-- 引入配置db信息的文件 -->
+	<context:property-placeholder location="classpath:db.properties" />
+
+
+	<!-- 数据源 c3p0 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+
+		<!-- 参数 都是由默认值 也可以手动设置 -->
+		<!-- 关键配置 -->
+		<!--初始化时获取三个连接，取值应在minPoolSize与maxPoolSize之间。Default: 3 -->
+		<!-- <property name="initialPoolSize" value="3"></property> -->
+		<!--连接池中保留的最小连接数。Default: 2 -->
+		<!-- <property name="minPoolSize" value="2"></property> -->
+		<!--连接池中保留的最大连接数。Default: 15 -->
+		<!-- <property name="maxPoolSize" value="15"></property> -->
+		<!--当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。Default: 3 -->
+		<!-- <property name="acquireIncrement" value="3"></property> -->
+	</bean>
+
+	<!--将原本是jdbcTemplate 替换成mybaits -->
+
+	<!-- mybaits-spring整合 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 加载mybatis的全局配置文件 -->
+		<!-- <property name="configLocation" value="classpath:sqlMapConfig.xml" 
+			/> -->
+		<!-- 配置实体类的别名 -->
+		<property name="typeAliasesPackage" value="com.hzit.bean" />
+		<!-- 如果想自定义mapper和dao接口的位置，可以在此配置 value:指定的位置 -->
+		<!-- <property name="mapperLocations" value="classpath:com/ssm/mapping/*.xml"></property> -->
+
+		<!-- 配置拦截器，处理分页 -->
+		<!-- 注意其他配置 -->
+		<property name="plugins">
+			<array>
+				<bean class="com.github.pagehelper.PageInterceptor">
+					<property name="properties">
+						<!--使用下面的方式配置参数，一行配置一个 -->
+						<value>
+							helperDialect=mysql
+						</value>
+					</property>
+				</bean>
+			</array>
+		</property>
+
+	</bean>
+
+	<!-- 扫描dao成和mapper配置文件 -->
+	<!-- DAO接口所在包名，Spring会自动查找其下的类 接口和mapper的路径，名称一致，可以自动去查询 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.hzit.dao" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+	</bean>
+
+
+
+
+	<!-- 事务管理器jdbc事务 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- 配置事务的特性 传播行为，隔离级别 -->
+	<tx:advice id="tx" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- isolation:隔离级别 默认是交给数据库的事务管理 propagation:事物的传播行为 默认：必须需要一个事物 -->
+			<tx:method name="save*" isolation="DEFAULT" propagation="REQUIRED" />
+			<tx:method name="insert*" isolation="DEFAULT" propagation="REQUIRED" />
+			<tx:method name="update*" isolation="DEFAULT" propagation="REQUIRED" />
+			<tx:method name="delete*" isolation="DEFAULT" propagation="REQUIRED" />
+			<!-- 本次只使用了zz -->
+			<tx:method name="zz" isolation="DEFAULT" propagation="REQUIRED" />
+			<!-- 不一定需要事务 -->
+			<tx:method name="find*" propagation="SUPPORTS" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 配置哪些方法需要使用事物 -->
+	<aop:config>
+		<aop:pointcut expression="execution(* com.hzit.service.*.*(..))"
+			id="mypoint" />
+		<aop:advisor advice-ref="tx" pointcut-ref="mypoint" />
+	</aop:config>
+
+
+
+
+
+
+
+</beans>

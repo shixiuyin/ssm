@@ -1,0 +1,59 @@
+一、使用拦截器验证用户是否登录
+	拦截器类似servlet中的过滤器,主要用来拦截请求，处理程序共性部分.
+	
+	第一步:创建一个实现HanlderInterceptor
+		参照:com.hzit.interceptor.LoginInterceptor
+	
+	
+	第二步:在springmvc.xml文件配置拦截的规则
+		参照:springmvc.xml配置
+				<mvc:interceptors>
+				
+				
+	
+二、增删改查(restful样式)
+	
+     --查询所有员工   emps         get 方法
+     --删除单个员工   emp/{empno}  delete 方法
+     
+     
+     --查询单个员工   emp/{empno}  get 方法
+     --修改单个员工   emp          put 方法
+     
+     
+     --跳转到添加界面 emp         get 方法
+     --添加单个员工   emp          post 方法
+     
+     --批量删除多个员工  emps      delete方法
+     
+
+
+
+	springmvc默认是不支持delete,put等方法。
+	可以通过设置顾虑让其支持.
+		<!-- 支持delete ,put 等方法 -->
+		<filter>
+			<filter-name>httpMethodFilter</filter-name>
+			<filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+		</filter>
+	
+		<filter-mapping>
+			<filter-name>httpMethodFilter</filter-name>
+			<servlet-name>petclinic</servlet-name>
+			<url-pattern>/*</url-pattern>
+		</filter-mapping>
+
+
+
+三、根据条件搜索（and）
+	a.根据部门       
+	b.根据员工名称--支持模糊查询
+	
+	请求 get:   search
+	
+
+
+
+
+
+
